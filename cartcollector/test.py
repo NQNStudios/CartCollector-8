@@ -2,13 +2,16 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-for i in range(1800, 1820):
-    url = 'http://www.lexaloffle.com/bbs/?tid=' + str(i)
+i = 99999999
 
-    html = requests.get(url).text
-    soup = BeautifulSoup(html, 'html.parser')
+url = 'http://www.lexaloffle.com/bbs/?tid=' + str(i)
 
-    links = soup.find_all('a')
+html = requests.get(url).text
+soup = BeautifulSoup(html, 'html.parser')
 
-    if re.search(re.compile('cat=7.+sub=2'), str(links[7])):
-        print str(i)
+links = soup.find_all('a')
+
+print(i)
+
+if re.search(re.compile('cat=7.+sub=2'), str(links[7])):
+    print True
