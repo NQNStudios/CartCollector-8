@@ -34,7 +34,7 @@ class CartFinder(object):
         identifier_regex = re.compile(
             'cat=' + str(self._cat) + '.+sub=' + str(self._sub))
 
-        return re.search(identifier_regex, links[7])
+        return re.search(identifier_regex, str(links[7]))
 
     def FindCarts(self):
         ''' Return a p8.png link to each of the carts found '''
@@ -49,7 +49,7 @@ class CartFinder(object):
 
             if success:
                 cart_number_label = soup.find(string=re.compile('#[0-9]+#'))
-                cart_number = int.parse(cart_number_label[2:-2])
+                cart_number = int(cart_number_label[2:-2])
                 cart_url = BBS_ROOT_URL + 'cposts/0/' + str(cart_number) + '.p8.png'
                 cart_urls.append(cart_url)
             else:
