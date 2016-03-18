@@ -1,0 +1,5 @@
+#! /bin/bash
+
+source ~/.collectorrc
+
+python cartcollector/main.py

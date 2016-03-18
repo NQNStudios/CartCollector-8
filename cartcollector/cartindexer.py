@@ -40,7 +40,6 @@ class CartIndexer(object):
         links = []
         for link in soup.find_all('a'):
             links.append(link.get('href'))
-            print(link.get('href'))
 
         tids = [
             re.search(re.compile('[0-9]+'), link).group(0)
@@ -48,4 +47,11 @@ class CartIndexer(object):
             if re.search(re.compile('^\?tid=[0-9]+$'), link)
         ]
 
+        return tids
+
+    def all_cart_tids(self):
+        ''' Return a list of every tid for a matching cartridge '''
+        tids = []
+        for page in range(1, self._num_pages()+1):
+            tids.extend(self._extract_tids(page))
         return tids

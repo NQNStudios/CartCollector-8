@@ -1,4 +1,8 @@
+import os
+from os.path import expanduser
+
 BBS_BASE_URL = 'http://lexaloffle.com/bbs/'
+INDEX_FILE = expanduser('~') + '/.collectorindex.json'
 
 
 def parameter_string(cat, sub, page):
@@ -10,3 +14,7 @@ def parameter_string(cat, sub, page):
         return_value += '&page=' + str(page)
 
     return return_value
+
+def cart_folder():
+    ''' Return the folder where carts are stored '''
+    return os.environ['CART_COLLECTOR_DIR']
