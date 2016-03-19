@@ -92,6 +92,18 @@ void Init(State* state)
 
 void Update(State* state)
 {
+    // Process events
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
+        {
+            case SDL_QUIT:
+                state->Running = false;
+                return;
+        }
+    }
 }
 
 void Draw(SDL_Renderer* renderer, TTF_Font* font)
