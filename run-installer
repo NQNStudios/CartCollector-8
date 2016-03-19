@@ -2,4 +2,4 @@
 
 source ~/.collectorrc
 
-python cartcollector/main.py
+python cart-installer/main.py
