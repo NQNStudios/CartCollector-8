@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 #include <dirent.h>
@@ -70,6 +71,8 @@ int main(int argc, char** argv)
             // Make sure font was opened properly
             if (font)
             {
+                // Initialize the launcher state
+                state = new State();
                 Init();
 
                 // Start the functioning loop
@@ -79,6 +82,9 @@ int main(int argc, char** argv)
                     Draw();
                     SDL_Delay(16);
                 }
+
+                // Clean up the launcher state
+                delete state;
             }
             else
             {
@@ -108,23 +114,37 @@ int main(int argc, char** argv)
     SDL_Quit();
 }
 
-SDL_Texture* testCart;
 void Init()
 {
     // Retrieve the cart directory
-    state->CartDirectory = getenv("CART_COLLECTOR_DIR");
+    const char* value = getenv("CART_COLLECTOR_DIR");
+
+    // Throw an error if it hasn't been defined
+    if (!value)
+    {
+        cout << "Error! Failed to find cart directory. Did you remember"
+            << " to load the runtime configuration?" << endl;
+        return;
+    }
+
+    state->CartDirectory = value;
 
     // Extract a list of every cart installed
     DIR* dir;
     struct dirent *ent;
-    dir = opendir(state->CartDirectory.c_str());
+    dir = opendir(value);
 
     if (dir != NULL)
     {
         while ((ent = readdir(dir)) != NULL)
         {
-            state->Carts.push_back(ent->d_name);
-            cout << ent->d_name << endl;
+            string filename(ent->d_name);
+            string extension(".p8.png");
+            if (filename.find(extension) != string::npos)
+            {
+                state->Carts.push_back(ent->d_name);
+                cout << ent->d_name << endl;
+            }
         }
 
         closedir(dir);
@@ -138,6 +158,8 @@ void Init()
     // Calculate how many pages we will have
     int carts = state->Carts.size();
     state->MaxPage = ceil((float) carts / (float) CARTS_PER_PAGE);
+
+    LoadCartImage();
 }
 
 void Update()
@@ -158,21 +180,21 @@ void Update()
 
 void Draw()
 {
+    // Clear the screen to black
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderFillRect(renderer, NULL);
-    if (!testCart)
-    {
-    testCart = SDL_CreateTextureFromSurface(
-            renderer,
-            IMG_Load(
-                "/Users/natman/Library/Application Support/PICO-8/carts/The Tower of Archeos.p8.png"));
-    }
-    SDL_Rect cartDisplayRect;
-    cartDisplayRect.x = 0;
-    cartDisplayRect.y = 0;
-    cartDisplayRect.w = 160;
-    cartDisplayRect.h = 205;
-    SDL_RenderCopy(renderer, testCart, NULL, &cartDisplayRect);
+
+    // Draw the cover of the currently selected cartridge
+    //SDL_Rect cartDisplayRect;
+    //cartDisplayRect.x = 0;
+    //cartDisplayRect.y = 0;
+    //cartDisplayRect.w = 160;
+    //cartDisplayRect.h = 205;
+    //SDL_RenderCopy(renderer, state->CartImage, NULL, &cartDisplayRect);
+
+    // Draw the list of cartridge titles
+
+    // Show the scene
     SDL_RenderPresent(renderer);
 }
 
