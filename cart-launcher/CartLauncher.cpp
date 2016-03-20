@@ -57,6 +57,10 @@ int main(int argc, char** argv)
     // Prepare for joystick events
     SDL_JoystickEventState(SDL_ENABLE);
     joystick = SDL_JoystickOpen(0);
+    if (!joystick)
+    {
+        cout << "Couldn't open joystick" << endl;
+    }
 
     // Open a TODO fullscreen window
     window = SDL_CreateWindow(
@@ -176,6 +180,7 @@ void Update()
     // Process events
     SDL_Event event;
 
+    SDL_Keycode key;
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -185,11 +190,11 @@ void Update()
                 return;
 
             case SDL_KEYDOWN:
-                SDL_Keycode key = event.key.keysym.sym;
+                key = event.key.keysym.sym;
                 switch (key)
                 {
                     case SDLK_LEFT:
-                        SetPage(state->Page - 1);
+                        SetPage(state->Page-1);
                         break;
                     case SDLK_RIGHT:
                         SetPage(state->Page + 1);
@@ -203,6 +208,31 @@ void Update()
                     case SDLK_RETURN:
                         LaunchCart();
                         break;
+                }
+                break;
+
+            case SDL_JOYAXISMOTION:
+                if (event.jaxis.value < -20000)
+                {
+                    if (event.jaxis.axis == 0)
+                    {
+                        SetPage(state->Page-1);
+                    }
+                    if (event.jaxis.axis == 1)
+                    {
+                        SetSelectedIndex(state->SelectedIndex-1);
+                    }
+                }
+                if (event.jaxis.value > 20000)
+                {
+                    if (event.jaxis.axis == 0)
+                    {
+                        SetPage(state->Page+1);
+                    }
+                    if (event.jaxis.axis == 1)
+                    {
+                        SetSelectedIndex(state->SelectedIndex+1);
+                    }
                 }
                 break;
         }
