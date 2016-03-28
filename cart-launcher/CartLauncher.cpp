@@ -18,6 +18,21 @@ using namespace std;
 
 const int CARTS_PER_PAGE = 15;
 const string EXTENSION(".p8.png");
+const int JOYSTICK_THRESHOLD = 20000;
+
+struct PadState
+{
+    int JoystickX=0;
+    int JoystickY=0;
+};
+
+enum PadDirection
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
+};
 
 struct State
 {
@@ -28,6 +43,9 @@ struct State
     int MaxPage;
     int SelectedIndex=0;
     SDL_Texture* CartImage=NULL;
+    PadState LastPadState;
+    PadState CurrentPadState;
+    PadDirection PadDirection;
 };
 
 void Init();
@@ -39,6 +57,8 @@ void SetSelectedIndex(int index);
 void SetPage(int page);
 void LoadCartImage();
 void LaunchCart();
+void CloseWindow();
+void OpenWindow();
 
 State* state;
 
@@ -123,6 +143,9 @@ int main(int argc, char** argv)
         cout << "Error! Failed to create window: " << SDL_GetError() << endl;
     }
 
+    // Close the joystick
+    SDL_JoystickClose(0);
+
     // Close the libraries
     TTF_Quit();
     SDL_Quit();
@@ -181,6 +204,7 @@ void Update()
     SDL_Event event;
 
     SDL_Keycode key;
+    Uint8 button;
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -211,32 +235,54 @@ void Update()
                 }
                 break;
 
-            case SDL_JOYAXISMOTION:
-                if (event.jaxis.value < -20000)
+            case SDL_JOYBUTTONDOWN:
+                button = event.jbutton.button;
+
+                cout << (int) button << endl;
+                // TODO this only handles XBox 360 gamepad
+                switch (button)
                 {
-                    if (event.jaxis.axis == 0)
-                    {
-                        SetPage(state->Page-1);
-                    }
-                    if (event.jaxis.axis == 1)
-                    {
-                        SetSelectedIndex(state->SelectedIndex-1);
-                    }
+                    case 0:
+                        LaunchCart();
+                        break;
                 }
-                if (event.jaxis.value > 20000)
+                break;
+
+            case SDL_JOYAXISMOTION:
+                if (event.jaxis.axis == 0)
                 {
-                    if (event.jaxis.axis == 0)
-                    {
-                        SetPage(state->Page+1);
-                    }
-                    if (event.jaxis.axis == 1)
-                    {
-                        SetSelectedIndex(state->SelectedIndex+1);
-                    }
+                    state->CurrentPadState.JoystickX = event.jaxis.value;
+                }
+                if (event.jaxis.axis == 1)
+                {
+                    state->CurrentPadState.JoystickY = event.jaxis.value;
                 }
                 break;
         }
     }
+
+    PadState curr = state->CurrentPadState;
+    PadState last = state->LastPadState;
+
+    if (curr.JoystickX <= -JOYSTICK_THRESHOLD && last.JoystickX > -JOYSTICK_THRESHOLD)
+    {
+        SetPage(state->Page-1);
+    }
+    if (curr.JoystickX >= JOYSTICK_THRESHOLD && last.JoystickX < JOYSTICK_THRESHOLD)
+    {
+        SetPage(state->Page+1);
+    }
+
+    if (curr.JoystickY <= -JOYSTICK_THRESHOLD && last.JoystickY > -JOYSTICK_THRESHOLD)
+    {
+        SetSelectedIndex(state->SelectedIndex-1);
+    }
+    if (curr.JoystickY >= JOYSTICK_THRESHOLD && last.JoystickY < JOYSTICK_THRESHOLD)
+    {
+        SetSelectedIndex(state->SelectedIndex+1);
+    }
+
+    state->LastPadState = state->CurrentPadState;
 }
 
 void Draw()
@@ -382,7 +428,7 @@ void LaunchCart()
     string cartPath = state->CartDirectory + "/" + cartName;
 
     // Launch the cart through PICO-8
-    string launchCommand = "pico8 -run \"" + cartPath + "\"";
+    string launchCommand = "pico8 -windowed 0 -run \"" + cartPath + "\"";
     cout << launchCommand << endl;
     FILE* in = popen(launchCommand.c_str(), "r");
     pclose(in);
