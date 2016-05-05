@@ -58,6 +58,8 @@ class Cart(object):
     def _filename(self):
         ''' Convert the title of this cartridge into a cart filename '''
         name = self._title + '.p8.png'
+        # Don't allow slashes to occur in filenames
+        name = name.replace('/', '-')
         return util.cart_folder() + '/' + name
 
     def download(self):
